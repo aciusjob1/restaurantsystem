@@ -11,9 +11,22 @@ import { PrintersController } from './modules/printers/printers.controller';
 import { SyncController } from './modules/sync/sync.controller';
 import { CatalogController } from './modules/catalog/catalog.controller';
 import { StaffController } from './modules/staff/staff.controller';
+import { WaitersController } from './modules/waiters/waiters.controller';
 
 @Module({
-  controllers: [HealthController, AuthController, OrdersController, OrderActionsController, PaymentsController, ReportsController, PrintersController, SyncController, CatalogController, StaffController],
+  controllers: [
+    HealthController,
+    AuthController,
+    OrdersController,
+    OrderActionsController,
+    PaymentsController,
+    ReportsController,
+    PrintersController,
+    SyncController,
+    CatalogController,
+    StaffController,
+    WaitersController,
+  ],
   providers: [DatabaseService, AuthGuard],
 })
 export class AppModule {}

@@ -1,15 +1,8 @@
-const metrics = [
-  { label: 'Gross Sales', value: 'TZS 480,000' },
-  { label: 'Payments', value: 'TZS 450,000' },
-  { label: 'Outstanding', value: 'TZS 30,000' },
-  { label: 'Cancelled', value: '1 Order' },
-];
-
-const waiterSales = [
-  { name: 'John', sales: 480000 },
-  { name: 'Mary', sales: 350000 },
-  { name: 'Peter', sales: 290000 },
-  { name: 'Asha', sales: 420000 },
+const waiterRows = [
+  { name: 'John', orders: 22, sales: 480000, payments: 450000 },
+  { name: 'Mary', orders: 18, sales: 350000, payments: 350000 },
+  { name: 'Peter', orders: 15, sales: 290000, payments: 260000 },
+  { name: 'Asha', orders: 20, sales: 420000, payments: 420000 },
 ];
 
 function App() {
@@ -24,30 +17,30 @@ function App() {
       </header>
 
       <section className="metric-grid">
-        {metrics.map((m) => (
-          <div className="metric-card" key={m.label}>
-            <span>{m.label}</span>
-            <strong>{m.value}</strong>
-          </div>
-        ))}
+        <div className="metric-card"><span>Gross Sales</span><strong>TZS 480,000</strong></div>
+        <div className="metric-card"><span>Net Sales</span><strong>TZS 460,000</strong></div>
+        <div className="metric-card"><span>Outstanding</span><strong>TZS 30,000</strong></div>
+        <div className="metric-card"><span>Cancelled</span><strong>1 order</strong></div>
       </section>
 
       <section className="report-panel">
-        <h2>Waiter performance</h2>
+        <h2>Waiter accountability</h2>
         <table>
           <thead>
             <tr>
               <th>Waiter</th>
               <th>Orders</th>
               <th>Sales</th>
+              <th>Payments</th>
             </tr>
           </thead>
           <tbody>
-            {waiterSales.map((row) => (
+            {waiterRows.map((row) => (
               <tr key={row.name}>
                 <td>{row.name}</td>
-                <td>22</td>
+                <td>{row.orders}</td>
                 <td>TZS {row.sales.toLocaleString()}</td>
+                <td>TZS {row.payments.toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
