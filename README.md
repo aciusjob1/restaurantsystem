@@ -1,62 +1,59 @@
 # City Square Restaurant POS
 
-This repository contains a local-first restaurant management system for City Square Restaurant. It is designed to continue operating without internet, while synchronizing to the cloud when connectivity is available.
+A desktop-first restaurant point-of-sale and management system for City Square Restaurant.
 
-## Architecture
+## What this system does
 
-- Local-first POS with PostgreSQL and a dedicated local server
-- Android waiter app with offline/local SQLite queue
-- Web cashier and manager dashboards in React + TypeScript
-- Thermal printer service for kitchen, bar, and receipt jobs
-- Cloud sync and reporting layer
-- Docker Compose for local deployment
+- Local-first transaction processing with PostgreSQL
+- Desktop cashier and manager interfaces
+- Dedicated waiter role and accountability tracking
+- Kitchen/bar print queue handling
+- Local network operation when internet fails
+- Cloud sync and reporting, without blocking business operations
 
-## Included modules
+## Desktop application model
 
-- Database schema for POS, inventory, payments, reports, sync, and audit trails
-- NestJS backend with auth, orders, payments, reports, printers, and sync endpoints
-- React cashier dashboard
-- React manager dashboard
-- Waiter Android app skeleton
-- Printer worker service for ESC/POS queue processing
-- Dockerized local environment
+This project is designed as a desktop application shell that runs the restaurant system locally on a restaurant PC. The desktop wrapper loads the cashier and manager interfaces, while the backend and database run locally on the same private network.
 
-## Quick start
+## Core roles
+
+- Admin
+- Manager
+- Cashier
+- Waiter
+
+Waiters are treated as first-class users in the system. Each waiter has their own profile, orders retain original waiter ownership, and reports include waiter sales and accountability.
+
+## Project structure
+
+```text
+restaurantsystem/
+├── backend/
+├── database/
+├── desktop/
+├── frontend/
+├── mobile/
+├── print-service/
+├── docker-compose.yml
+├── README.md
+└── .gitignore
+```
+
+## Run locally
 
 ```bash
 docker compose up --build
 ```
 
-Then open:
+To run the desktop shell:
 
-- Cashier app: http://localhost:5173
-- Manager app: http://localhost:5174
-- Backend API: http://localhost:3000
-- PostgreSQL: localhost:5432
+```bash
+cd desktop
+npm install
+npm run dev
+```
 
-## Default credentials
+## Default login
 
 - Email: admin@citysquare.local
 - Password: admin123
-
-## Repository layout
-
-```text
-city-square-pos/
-├── backend/
-├── database/
-├── frontend/
-├── mobile/
-├── print-service/
-├── docker-compose.yml
-├── .gitignore
-└── README.md
-```
-
-## Business priorities
-
-- Local operation continues when internet is unavailable
-- Orders and payments are auditable and protected from silent data loss
-- Kitchen and bar printers operate on the private LAN only
-- Financial data is protected by immutable audit logs
-- Waiter accountability and daily reconciliation are built into the design
