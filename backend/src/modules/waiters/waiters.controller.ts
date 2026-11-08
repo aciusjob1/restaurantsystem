@@ -10,31 +10,25 @@ export class WaitersController {
   @Get()
   async list() {
     return (await this.db.query(`
-      SELECT
-        w.id,
-        w.waiter_code,
-        w.nickname,
-        w.status,
-        u.full_name,
-        u.email,
-        COUNT(o.id) AS total_orders,
-        COALESCE(SUM(o.total_amount) FILTER (WHERE o.status <> 'CANCELLED'), 0) AS total_sales
-      FROM waiters w
-      JOIN users u ON u.id = w.user_id
-      LEFT JOIN orders o ON o.waiter_id = w.id
-      GROUP BY w.id, u.full_name, u.email
-      ORDER BY u.full_name
+      SELECT w.id,w.waiter_code,w.nickname,w.status,u.full_name,
+        COUNT(o.id)::int AS total_orders,
+        COALESCE(SUM(o.total_amount) FILTER (WHERE o.status <> 'CANCELLED'),0) AS total_sales
+      FROM waiters w JOIN users u ON u.id=w.user_id
+      LEFT JOIN orders o ON o.waiter_id=w.id
+      WHERE w.status='ACTIVE' AND u.is_active=true
+      GROUP BY w.id,u.full_name ORDER BY u.full_name
     `)).rows;
   }
 
   @Get('summary')
   async summary() {
-    return {
-      activeWaiters: 5,
-      todayOrders: 42,
-      totalWaiterSales: 920000,
-      currency: 'TZS',
-      topWaiter: 'John',
-    };
+    const result = await this.db.query(`
+      SELECT COUNT(DISTINCT w.id)::int AS active_waiters,
+        COUNT(o.id)::int AS today_orders,
+        COALESCE(SUM(o.total_amount) FILTER (WHERE o.status <> 'CANCELLED'),0) AS total_waiter_sales
+      FROM waiters w LEFT JOIN orders o ON o.waiter_id=w.id AND o.created_at::date=(NOW() AT TIME ZONE 'Africa/Dar_es_Salaam')::date
+      WHERE w.status='ACTIVE'
+    `);
+    return { ...result.rows[0], currency:'TZS' };
   }
 }
