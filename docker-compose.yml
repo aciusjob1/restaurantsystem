@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: citysquare-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: citysquare
+      POSTGRES_USER: citysquare
+      POSTGRES_PASSWORD: citysquare
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+
+  backend:
+    build:
+      context: ./backend
+    container_name: citysquare-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgres://citysquare:citysquare@postgres:5432/citysquare
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  cashier:
+    build:
+      context: ./frontend/cashier
+    container_name: citysquare-cashier
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  manager:
+    build:
+      context: ./frontend/manager
+    container_name: citysquare-manager
+    restart: unless-stopped
+    ports:
+      - "5174:5174"
+    depends_on:
+      - backend
+
+  print-service:
+    build:
+      context: ./print-service
+    container_name: citysquare-printer-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
