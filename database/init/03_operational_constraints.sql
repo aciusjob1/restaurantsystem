@@ -1,0 +1,10 @@
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(160);
+CREATE UNIQUE INDEX IF NOT EXISTS orders_idempotency_key_uq ON orders(idempotency_key) WHERE idempotency_key IS NOT NULL;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(200);
+CREATE UNIQUE INDEX IF NOT EXISTS payments_idempotency_key_uq ON payments(idempotency_key) WHERE idempotency_key IS NOT NULL;
+ALTER TABLE sync_events ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(200);
+CREATE UNIQUE INDEX IF NOT EXISTS sync_events_idempotency_key_uq ON sync_events(idempotency_key) WHERE idempotency_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments(created_at);
+CREATE INDEX IF NOT EXISTS idx_waiters_user ON waiters(user_id);
+INSERT INTO roles(name,description) VALUES('ADMIN','Restaurant administrator'),('MANAGER','Operations manager'),('CASHIER','Cash register operator'),('WAITER','Waiter / sales agent') ON CONFLICT(name) DO NOTHING;
