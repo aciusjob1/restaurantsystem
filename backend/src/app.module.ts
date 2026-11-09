@@ -12,6 +12,7 @@ import { SyncController } from './modules/sync/sync.controller';
 import { CatalogController } from './modules/catalog/catalog.controller';
 import { CatalogAliasController } from './modules/catalog/catalog-alias.controller';
 import { StaffController } from './modules/staff/staff.controller';
+import { WaiterPinController } from './modules/staff/waiter-pin.controller';
 import { WaitersController } from './modules/waiters/waiters.controller';
 
 @Module({
@@ -27,6 +28,7 @@ import { WaitersController } from './modules/waiters/waiters.controller';
     CatalogController,
     CatalogAliasController,
     StaffController,
+    WaiterPinController,
     WaitersController,
   ],
   providers: [DatabaseService, AuthGuard],
