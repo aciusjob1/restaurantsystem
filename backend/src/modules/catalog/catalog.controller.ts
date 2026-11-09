@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, BadRequestException, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { DatabaseService } from '../../services/database.service';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -11,7 +11,7 @@ export class CatalogController {
   async products() {
     return (await this.db.query(`
       SELECT p.id, p.sku, p.name, p.description, p.selling_price, p.is_available,
-        p.preparation_station, c.name AS category_name
+             p.preparation_station, c.name AS category_name
       FROM products p
       LEFT JOIN categories c ON c.id = p.category_id
       ORDER BY c.name, p.name

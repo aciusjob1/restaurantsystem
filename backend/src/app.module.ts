@@ -10,9 +10,9 @@ import { ReportsController } from './modules/reports/reports.controller';
 import { PrintersController } from './modules/printers/printers.controller';
 import { SyncController } from './modules/sync/sync.controller';
 import { CatalogController } from './modules/catalog/catalog.controller';
+import { CatalogAliasController } from './modules/catalog/catalog-alias.controller';
 import { StaffController } from './modules/staff/staff.controller';
 import { WaitersController } from './modules/waiters/waiters.controller';
-import { WaiterPinController } from './modules/staff/waiter-pin.controller';
 
 @Module({
   controllers: [
@@ -25,9 +25,9 @@ import { WaiterPinController } from './modules/staff/waiter-pin.controller';
     PrintersController,
     SyncController,
     CatalogController,
+    CatalogAliasController,
     StaffController,
     WaitersController,
-    WaiterPinController,
   ],
   providers: [DatabaseService, AuthGuard],
 })
