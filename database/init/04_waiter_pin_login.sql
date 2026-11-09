@@ -1,0 +1,1 @@
+ALTER TABLE waiters ADD COLUMN IF NOT EXISTS pin_hash TEXT;

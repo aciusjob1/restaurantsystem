@@ -12,6 +12,7 @@ import { SyncController } from './modules/sync/sync.controller';
 import { CatalogController } from './modules/catalog/catalog.controller';
 import { StaffController } from './modules/staff/staff.controller';
 import { WaitersController } from './modules/waiters/waiters.controller';
+import { WaiterPinController } from './modules/staff/waiter-pin.controller';
 
 @Module({
   controllers: [
@@ -26,6 +27,7 @@ import { WaitersController } from './modules/waiters/waiters.controller';
     CatalogController,
     StaffController,
     WaitersController,
+    WaiterPinController,
   ],
   providers: [DatabaseService, AuthGuard],
 })
