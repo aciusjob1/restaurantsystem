@@ -1,6 +1,5 @@
-import { TooManyRequestsException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpException, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { createHmac } from 'crypto';
-import { BadRequestException, Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
@@ -102,7 +101,7 @@ export class AuthController {
       return;
     }
     if (previous.count >= AuthController.pinAttemptsPerWindow) {
-      throw new TooManyRequestsException('Too many PIN attempts. Wait one minute and try again.');
+      throw new HttpException('Too many PIN attempts. Wait one minute and try again.', 429);
     }
     previous.count += 1;
   }
