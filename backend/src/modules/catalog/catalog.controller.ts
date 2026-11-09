@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { DatabaseService } from '../../services/database.service';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -11,11 +11,16 @@ export class CatalogController {
   async products() {
     return (await this.db.query(`
       SELECT p.id, p.sku, p.name, p.description, p.selling_price, p.is_available,
-             p.preparation_station, c.name AS category_name
+             p.preparation_station, p.category_id, c.name AS category_name
       FROM products p
       LEFT JOIN categories c ON c.id = p.category_id
       ORDER BY c.name, p.name
     `)).rows;
+  }
+
+  @Get('categories')
+  async categories() {
+    return (await this.db.query('SELECT id, name, description FROM categories ORDER BY name')).rows;
   }
 
   @Get('tables')
@@ -27,24 +32,49 @@ export class CatalogController {
     `)).rows;
   }
 
+  @Post('categories')
+  async createCategory(@Req() req: any, @Body() body: any) {
+    if (!['ADMIN', 'MANAGER'].includes(req.user.role)) {
+      throw new ForbiddenException('Only managers or administrators can add categories');
+    }
+    const name = String(body.name || '').trim();
+    if (!name) throw new BadRequestException('Category name is required');
+
+    const existing = await this.db.query('SELECT id FROM categories WHERE lower(name) = lower($1)', [name]);
+    if (existing.rowCount) throw new BadRequestException('That category already exists');
+    const result = await this.db.query(
+      'INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING id, name, description',
+      [name, body.description ? String(body.description).trim() : null],
+    );
+    return result.rows[0];
+  }
+
   @Post('products')
   async createProduct(@Req() req: any, @Body() body: any) {
     if (!['ADMIN', 'MANAGER'].includes(req.user.role)) {
-      throw new BadRequestException('Only managers can add menu items');
+      throw new ForbiddenException('Only managers or administrators can add menu items');
     }
 
-    if (!body.name || !body.sku || body.sellingPrice == null) {
-      throw new BadRequestException('name, sku, and sellingPrice are required');
+    const sku = String(body.sku || '').trim().toUpperCase();
+    const name = String(body.name || '').trim();
+    const price = Number(body.sellingPrice);
+    if (!name || !sku || body.sellingPrice == null || !Number.isFinite(price) || price <= 0) {
+      throw new BadRequestException('Name, SKU, and a positive selling price are required');
     }
 
-    const category = body.categoryId ? await this.db.query('SELECT id FROM categories WHERE id = $1', [body.categoryId]) : null;
+    let categoryId: string | null = null;
+    if (body.categoryId) {
+      const category = await this.db.query('SELECT id FROM categories WHERE id = $1', [body.categoryId]);
+      if (!category.rowCount) throw new BadRequestException('Selected category does not exist');
+      categoryId = category.rows[0].id;
+    }
+
     const result = await this.db.query(
       `INSERT INTO products (sku, name, description, category_id, selling_price, cost_price, is_available, preparation_station)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *`,
-      [body.sku, body.name, body.description || null, category?.rowCount ? category.rows[0].id : null, Number(body.sellingPrice), Number(body.costPrice || 0), body.isAvailable !== false, body.preparationStation || 'KITCHEN'],
+       RETURNING id, sku, name, description, category_id, selling_price, is_available, preparation_station`,
+      [sku, name, body.description ? String(body.description).trim() : null, categoryId, price, Number(body.costPrice || 0), body.isAvailable !== false, body.preparationStation || 'KITCHEN'],
     );
-
     return result.rows[0];
   }
 }
