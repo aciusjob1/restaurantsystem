@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Post, Req, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { createHmac } from 'crypto';
 import { DatabaseService } from '../../services/database.service';
 
 @Controller('auth')
@@ -28,23 +29,24 @@ export class AuthController {
     return { token, user: { id: user.id, email: user.email, full_name: user.full_name, role: user.role } };
   }
 
+  // Waiters authenticate with their unique PIN alone. Staff/admin accounts continue to use email and password.
   @Post('waiter-pin-login')
   async waiterPinLogin(@Body() body: any) {
-    const waiterCode = String(body.waiterCode || '').trim();
     const pin = String(body.pin || '');
-    if (!waiterCode || !/^\d{4,8}$/.test(pin)) {
-      throw new BadRequestException('Enter your waiter code and a 4–8 digit PIN');
+    if (!/^\d{4,8}$/.test(pin)) {
+      throw new BadRequestException('Enter your 4–8 digit waiter PIN');
     }
 
+    const fingerprint = this.pinFingerprint(pin);
     const result = await this.db.query(`
       SELECT u.id, u.email, u.full_name, u.is_active, w.id AS waiter_id,
              w.waiter_code, w.nickname, w.pin_hash
       FROM waiters w JOIN users u ON u.id = w.user_id
-      WHERE upper(w.waiter_code) = upper($1) AND w.status = 'ACTIVE'
-    `, [waiterCode]);
+      WHERE w.pin_fingerprint = $1 AND w.status = 'ACTIVE'
+    `, [fingerprint]);
     const waiter = result.rows[0];
     if (!waiter || !waiter.is_active || !waiter.pin_hash || !(await bcrypt.compare(pin, waiter.pin_hash))) {
-      throw new UnauthorizedException('Invalid waiter code or PIN');
+      throw new UnauthorizedException('Invalid waiter PIN');
     }
 
     await this.db.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [waiter.id]);
@@ -91,5 +93,10 @@ export class AuthController {
       process.env.JWT_SECRET || 'development-only-change-me',
       { expiresIn: '12h' },
     );
+  }
+
+  private pinFingerprint(pin: string) {
+    const pepper = process.env.WAITER_PIN_PEPPER || process.env.JWT_SECRET || 'development-only-change-me';
+    return createHmac('sha256', pepper).update(pin).digest('hex');
   }
 }
